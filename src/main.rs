@@ -1,5 +1,6 @@
 pub mod balances;
-mod system;
+pub mod runtime;
+pub mod system;
 
 fn main() {
 	println!("Hello, world!");
