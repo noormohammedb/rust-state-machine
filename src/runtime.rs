@@ -1,12 +1,12 @@
 use crate::{balances, system};
 
 pub struct Runtime {
-	system: system::Pallet,
-	balances: balances::Pallet,
+	pub system: system::Pallet,
+	pub balances: balances::Pallet,
 }
 
 impl Runtime {
-	fn new() -> Self {
+	pub fn new() -> Self {
 		Self { system: system::Pallet::new(), balances: balances::Pallet::new() }
 	}
 }
