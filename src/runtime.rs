@@ -3,7 +3,7 @@ use crate::{balances, system};
 #[derive(Debug)]
 pub struct Runtime {
 	pub system: system::Pallet,
-	pub balances: balances::Pallet,
+	pub balances: balances::Pallet<String, u128>,
 }
 
 impl Runtime {

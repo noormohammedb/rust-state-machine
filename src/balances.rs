@@ -1,12 +1,16 @@
-use crate::{AccountId, Balance};
+use num::{CheckedAdd, CheckedSub, Unsigned, Zero};
 use std::collections::BTreeMap;
 
 #[derive(Debug)]
-pub struct Pallet {
+pub struct Pallet<AccountId, Balance> {
 	balances: BTreeMap<AccountId, Balance>,
 }
 
-impl Pallet {
+impl<AccountId, Balance> Pallet<AccountId, Balance>
+where
+	AccountId: Ord + Clone,
+	Balance: Zero + Unsigned + CheckedAdd + CheckedSub + Copy + core::fmt::Debug,
+{
 	pub fn new() -> Self {
 		Self { balances: BTreeMap::new() }
 	}
@@ -29,7 +33,7 @@ impl Pallet {
 		self.balances.insert(who.clone(), amount);
 	}
 	pub fn balance(&self, who: &AccountId) -> Balance {
-		*self.balances.get(who).unwrap_or(&0)
+		*self.balances.get(who).unwrap_or(&Balance::zero())
 	}
 
 	pub fn transfer(
@@ -42,9 +46,10 @@ impl Pallet {
 
 		let to_balance = self.balance(to);
 
-		let updated_from = from_balance.checked_sub(amount).ok_or("Insufficient balance")?;
+		let updated_from = from_balance.checked_sub(&amount).ok_or("Insufficient balance")?;
 
-		let updated_to = to_balance.checked_add(from_balance - updated_from).ok_or("Overflow")?;
+		let updated_to =
+			to_balance.checked_add(&(from_balance - updated_from)).ok_or("Overflow")?;
 
 		self.set_balance(from, updated_from);
 		self.set_balance(to, updated_to);
@@ -59,7 +64,7 @@ mod tests {
 
 	#[test]
 	fn init_balances() {
-		let mut balances = Pallet::new();
+		let mut balances = Pallet::<String, u128>::new();
 
 		assert_eq!(balances.balance(&"alice".to_string()), 0);
 		balances.set_balance(&"alice".to_string(), 100);
@@ -69,7 +74,7 @@ mod tests {
 
 	#[test]
 	fn transfer_balance() {
-		let mut balances = Pallet::new();
+		let mut balances = Pallet::<String, u128>::new();
 
 		let alice = &"alice".to_string();
 		let bob = &"bob".to_string();
