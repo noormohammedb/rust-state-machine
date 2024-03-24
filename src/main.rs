@@ -2,6 +2,11 @@ pub mod balances;
 pub mod runtime;
 pub mod system;
 
+pub type AccountId = String;
+pub type Balance = u128;
+pub type Nonce = u32;
+pub type BlockNumber = u32;
+
 fn main() {
 	let alice = &"alice".to_string();
 	let bob = &"bob".to_string();

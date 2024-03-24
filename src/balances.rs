@@ -1,7 +1,9 @@
+use crate::{AccountId, Balance};
 use std::collections::BTreeMap;
 
+#[derive(Debug)]
 pub struct Pallet {
-	balances: BTreeMap<String, u128>,
+	balances: BTreeMap<AccountId, Balance>,
 }
 
 impl Pallet {
@@ -9,7 +11,7 @@ impl Pallet {
 		Self { balances: BTreeMap::new() }
 	}
 
-	pub fn new_with_data(data: Vec<(String, u128)>) -> Self {
+	pub fn new_with_data(data: Vec<(AccountId, Balance)>) -> Self {
 		let mut balances = BTreeMap::new();
 
 		data.into_iter().for_each(|data_i| {
@@ -19,22 +21,22 @@ impl Pallet {
 		Self { balances }
 	}
 
-	pub fn get_balance(&self, who: &String) -> Option<u128> {
+	pub fn get_balance(&self, who: &AccountId) -> Option<Balance> {
 		self.balances.get(who).copied()
 	}
 
-	pub fn set_balance(&mut self, who: &String, amount: u128) {
+	pub fn set_balance(&mut self, who: &AccountId, amount: Balance) {
 		self.balances.insert(who.clone(), amount);
 	}
-	pub fn balance(&self, who: &String) -> u128 {
+	pub fn balance(&self, who: &AccountId) -> Balance {
 		*self.balances.get(who).unwrap_or(&0)
 	}
 
 	pub fn transfer(
 		&mut self,
-		from: &String,
-		to: &String,
-		amount: u128,
+		from: &AccountId,
+		to: &AccountId,
+		amount: Balance,
 	) -> Result<(), &'static str> {
 		let from_balance = self.balance(from);
 

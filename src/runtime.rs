@@ -1,5 +1,6 @@
 use crate::{balances, system};
 
+#[derive(Debug)]
 pub struct Runtime {
 	pub system: system::Pallet,
 	pub balances: balances::Pallet,
