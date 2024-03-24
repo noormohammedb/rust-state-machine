@@ -1,9 +1,12 @@
-use crate::{balances, system};
+use crate::{
+	balances, system,
+	types::{AccountId, Balance, BlockNumber, Nonce},
+};
 
 #[derive(Debug)]
 pub struct Runtime {
-	pub system: system::Pallet,
-	pub balances: balances::Pallet<String, u128>,
+	pub system: system::Pallet<BlockNumber, AccountId, Nonce>,
+	pub balances: balances::Pallet<AccountId, Balance>,
 }
 
 impl Runtime {

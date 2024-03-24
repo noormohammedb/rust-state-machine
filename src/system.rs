@@ -1,15 +1,20 @@
-use crate::{AccountId, BlockNumber, Nonce};
-use std::collections::BTreeMap;
+use num::{CheckedAdd, One, Unsigned, Zero};
+use std::{collections::BTreeMap, ops::AddAssign};
 
 #[derive(Debug)]
-pub struct Pallet {
+pub struct Pallet<BlockNumber, AccountId, Nonce> {
 	block_number: BlockNumber,
 	nonce: BTreeMap<AccountId, Nonce>,
 }
 
-impl Pallet {
+impl<BlockNumber, AccountId, Nonce> Pallet<BlockNumber, AccountId, Nonce>
+where
+	BlockNumber: Zero + One + CheckedAdd + Unsigned + AddAssign + Copy,
+	AccountId: Ord + Clone,
+	Nonce: Zero + One + Unsigned + Copy,
+{
 	pub fn new() -> Self {
-		Self { block_number: 0, nonce: BTreeMap::new() }
+		Self { block_number: BlockNumber::zero(), nonce: BTreeMap::new() }
 	}
 
 	pub fn _genesis_init(b_num: BlockNumber, nonce_data: Vec<(AccountId, Nonce)>) -> Self {
@@ -25,19 +30,19 @@ impl Pallet {
 	}
 
 	pub fn inc_block_number(&mut self) -> BlockNumber {
-		let new_block_num = self.block_number + 1;
-		self.block_number += 1;
+		let new_block_num = self.block_number + BlockNumber::one();
+		self.block_number += BlockNumber::one();
 
 		new_block_num
 	}
 
 	pub fn nonce(&self, who: &AccountId) -> Nonce {
-		self.nonce.get(who).copied().unwrap_or(0)
+		self.nonce.get(who).copied().unwrap_or(Nonce::zero())
 	}
 
 	pub fn inc_nonce(&mut self, who: &AccountId) {
-		let current = self.nonce.get(who).copied().unwrap_or(0);
-		self.nonce.insert(who.clone(), current + 1);
+		let current = self.nonce.get(who).copied().unwrap_or(Nonce::zero());
+		self.nonce.insert(who.clone(), current + Nonce::one());
 	}
 }
 
@@ -47,7 +52,7 @@ mod tests {
 
 	#[test]
 	fn init_system() {
-		let mut system = Pallet::new();
+		let mut system = Pallet::<u32, String, u32>::new();
 		let alice = &"Alice".to_string();
 
 		assert_eq!(system.block_number(), 0);
