@@ -6,7 +6,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Runtime {
 	pub system: system::Pallet<Self>,
-	pub balances: balances::Pallet<AccountId, Balance>,
+	pub balances: balances::Pallet<Self>,
 }
 
 impl Runtime {
@@ -19,4 +19,9 @@ impl system::Config for Runtime {
 	type AccountId = AccountId;
 	type BlockNumber = BlockNumber;
 	type Nonce = Nonce;
+}
+
+impl balances::Config for Runtime {
+	type AccountId = AccountId;
+	type Balance = Balance;
 }
