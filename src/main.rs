@@ -1,13 +1,21 @@
 pub mod balances;
 pub mod runtime;
+pub mod support;
 pub mod system;
 
 mod types {
+	use crate::{support, RuntimeCall};
+
 	pub type AccountId = String;
 	pub type Balance = u128;
 	pub type Nonce = u32;
 	pub type BlockNumber = u32;
+	pub type Extrinsic = support::Extrinsic<RuntimeCall, AccountId>;
+	pub type Header = support::Header<BlockNumber>;
+	pub type Block = support::Block<Header, Extrinsic>;
 }
+
+pub enum RuntimeCall {}
 
 fn main() {
 	let alice = &"alice".to_string();
