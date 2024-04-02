@@ -17,5 +17,5 @@ pub type DispatchResult = core::result::Result<(), &'static str>;
 pub trait Dispatch {
 	type Caller;
 	type Call;
-	fn dispatch(&mut self, caller: Self::Call, call: Self::Call) -> DispatchResult;
+	fn dispatch(&mut self, caller: Self::Caller, call: Self::Call) -> DispatchResult;
 }
