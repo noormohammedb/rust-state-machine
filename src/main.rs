@@ -22,7 +22,7 @@ mod types {
 
 #[derive(Debug)]
 pub enum RuntimeCall {
-	BalanceTransfer { to: types::AccountId, amount: types::Balance },
+	Balances(balances::Call<Runtime>),
 }
 
 impl Runtime {
@@ -55,8 +55,8 @@ impl crate::support::Dispatch for Runtime {
 		runtime_call: Self::Call,
 	) -> support::DispatchResult {
 		match runtime_call {
-			RuntimeCall::BalanceTransfer { to, amount } => {
-				return self.balances.transfer(&caller, &to, amount)
+			RuntimeCall::Balances(call) => {
+				return self.balances.dispatch(caller, call);
 			},
 		}
 	}
@@ -81,23 +81,23 @@ fn main() {
 		header: Header { block_number: 0 },
 		extrinsics: vec![Extrinsic {
 			caller: String::from("test00"),
-			call: RuntimeCall::BalanceTransfer { to: String::from("test01"), amount: 1 },
+			call: RuntimeCall::Balances(balances::Call::Transfer {
+				to: String::from("test01"),
+				amount: 1,
+			}),
 		}],
 	};
 
 	runtime.execute_block(block_00).expect("invalid block");
 
-	// emulating block
-	assert_eq!(runtime.system.block_number(), 1); // remove when extrinsic is implemented
-
 	let alice_to_bob_30 = Extrinsic {
 		caller: alice.clone(),
-		call: RuntimeCall::BalanceTransfer { to: bob.clone(), amount: 30 },
+		call: RuntimeCall::Balances(balances::Call::Transfer { to: bob.clone(), amount: 30 }),
 	};
 
 	let alise_to_charlie_20 = Extrinsic {
 		caller: alice.clone(),
-		call: RuntimeCall::BalanceTransfer { to: charlie.clone(), amount: 20 },
+		call: RuntimeCall::Balances(balances::Call::Transfer { to: charlie.clone(), amount: 20 }),
 	};
 
 	let block_01 = Block {
@@ -110,4 +110,6 @@ fn main() {
 	println!("{alice}'s balance: {}", runtime.balances.balance(alice));
 	println!("{bob}'s balance: {}", runtime.balances.balance(bob));
 	println!("{charlie}'s balance: {}", runtime.balances.balance(charlie));
+
+	println!("{:#?}", runtime);
 }
