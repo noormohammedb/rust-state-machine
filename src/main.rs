@@ -6,6 +6,8 @@ pub mod system;
 use runtime::Runtime;
 use support::Dispatch;
 
+use crate::types::{Block, Extrinsic, Header};
+
 mod types {
 	use crate::{support, RuntimeCall};
 
@@ -26,14 +28,11 @@ pub enum RuntimeCall {
 impl Runtime {
 	fn execute_block(&mut self, block: types::Block) -> support::DispatchResult {
 		for (i, types::Extrinsic { caller, call }) in block.extrinsics.into_iter().enumerate() {
-			self.system.inc_block_number();
-			dbg!(block.header.block_number, self.system.block_number());
 			if block.header.block_number != self.system.block_number() {
 				return Err("Block number mismatch");
 			};
 			self.system.inc_nonce(&caller);
-			dbg!(&call, &caller);
-			println!(">> Extrinsic: {:?};Block: {};", &call, self.system.block_number());
+			println!(">> Extrinsic ({caller}): {:?};Block: {}", &call, self.system.block_number());
 			let _res = self.dispatch(caller, call).map_err(|e| {
 				eprintln!(
 					"Extrinsic Error\n\tBlock Number: {}\n\tExtrinsic Number: {}\n\tError: {}",
@@ -41,6 +40,7 @@ impl Runtime {
 				)
 			});
 		}
+		self.system.inc_block_number();
 		Ok(())
 	}
 }
@@ -56,11 +56,9 @@ impl crate::support::Dispatch for Runtime {
 	) -> support::DispatchResult {
 		match runtime_call {
 			RuntimeCall::BalanceTransfer { to, amount } => {
-				self.balances.transfer(&caller, &to, amount)?;
+				return self.balances.transfer(&caller, &to, amount)
 			},
 		}
-
-		unimplemented!();
 	}
 }
 
@@ -70,32 +68,46 @@ fn main() {
 	let charlie = &"charlie".to_string();
 
 	let mut runtime = runtime::Runtime::new();
+
+	// genesis state
+	runtime.balances.set_balance(&"test00".to_owned(), 100);
 	runtime.balances.set_balance(alice, 100);
 
 	println!("{alice}'s balance: {}", runtime.balances.balance(alice));
+	println!("{bob}'s balance: {}", runtime.balances.balance(bob));
+	println!("{charlie}'s balance: {}", runtime.balances.balance(charlie));
+
+	let block_00 = Block {
+		header: Header { block_number: 0 },
+		extrinsics: vec![Extrinsic {
+			caller: String::from("test00"),
+			call: RuntimeCall::BalanceTransfer { to: String::from("test01"), amount: 1 },
+		}],
+	};
+
+	runtime.execute_block(block_00).expect("invalid block");
 
 	// emulating block
-	runtime.system.inc_block_number();
 	assert_eq!(runtime.system.block_number(), 1); // remove when extrinsic is implemented
 
-	runtime.system.inc_nonce(alice);
-	let _transfer_res = runtime.balances.transfer(alice, bob, 30).map_err(|e| {
-		println!("alice to bob transfer failed for 30 token");
-		eprintln!("{}", e);
-	});
-	println!(">> transfer from {alice} to {bob} for 30 token");
+	let alice_to_bob_30 = Extrinsic {
+		caller: alice.clone(),
+		call: RuntimeCall::BalanceTransfer { to: bob.clone(), amount: 30 },
+	};
+
+	let alise_to_charlie_20 = Extrinsic {
+		caller: alice.clone(),
+		call: RuntimeCall::BalanceTransfer { to: charlie.clone(), amount: 20 },
+	};
+
+	let block_01 = Block {
+		header: Header { block_number: 1 },
+		extrinsics: vec![alice_to_bob_30, alise_to_charlie_20],
+	};
+
+	runtime.execute_block(block_01).expect("invalid block");
 
 	println!("{alice}'s balance: {}", runtime.balances.balance(alice));
 	println!("{bob}'s balance: {}", runtime.balances.balance(bob));
-
-	runtime.system.inc_nonce(alice);
-	let _transfer_res = runtime.balances.transfer(alice, charlie, 20).map_err(|e| {
-		println!("{alice} to charlie transfer failed for 20 token");
-		eprintln!("{}", e);
-	});
-
-	println!(">> transfer from {alice} to {charlie} for 20 token");
-
-	println!("{alice}'s balance: {}", runtime.balances.balance(alice));
 	println!("{charlie}'s balance: {}", runtime.balances.balance(charlie));
 }
