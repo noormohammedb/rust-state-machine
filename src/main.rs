@@ -30,10 +30,10 @@ pub enum RuntimeCall {
 
 impl Runtime {
 	fn execute_block(&mut self, block: types::Block) -> support::DispatchResult {
+		if block.header.block_number != self.system.block_number() {
+			return Err("Block number mismatch");
+		};
 		for (i, types::Extrinsic { caller, call }) in block.extrinsics.into_iter().enumerate() {
-			if block.header.block_number != self.system.block_number() {
-				return Err("Block number mismatch");
-			};
 			self.system.inc_nonce(&caller);
 			println!(">> Extrinsic ({caller}): {:?};Block: {}", &call, self.system.block_number());
 			let _res = self.dispatch(caller, call).map_err(|e| {
@@ -150,6 +150,10 @@ fn main() {
 	};
 
 	runtime.execute_block(block_03).expect("invalid block");
+
+	let invalid_empty_block = Block { header: Header { block_number: 99 }, extrinsics: vec![] };
+
+	assert_eq!(runtime.execute_block(invalid_empty_block), Err("Block number mismatch"));
 
 	println!("{:#?}", runtime);
 }

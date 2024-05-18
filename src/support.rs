@@ -1,12 +1,15 @@
+#[derive(Debug)]
 pub struct Block<Header, Extrinsic> {
 	pub header: Header,
 	pub extrinsics: Vec<Extrinsic>,
 }
 
+#[derive(Debug)]
 pub struct Header<BlockNumber> {
 	pub block_number: BlockNumber,
 }
 
+#[derive(Debug)]
 pub struct Extrinsic<Caller, Call> {
 	pub caller: Caller,
 	pub call: Call,
