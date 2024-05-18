@@ -19,11 +19,13 @@ mod types {
 	pub type Extrinsic = support::Extrinsic<AccountId, RuntimeCall>;
 	pub type Header = support::Header<BlockNumber>;
 	pub type Block = support::Block<Header, Extrinsic>;
+	pub type Content = &'static str;
 }
 
 #[derive(Debug)]
 pub enum RuntimeCall {
 	Balances(balances::Call<Runtime>),
+	POExistence(proof_of_existence::Call<Runtime>),
 }
 
 impl Runtime {
@@ -58,6 +60,9 @@ impl crate::support::Dispatch for Runtime {
 		match runtime_call {
 			RuntimeCall::Balances(call) => {
 				return self.balances.dispatch(caller, call);
+			},
+			RuntimeCall::POExistence(call) => {
+				return self.pallet_existence.dispatch(caller, call);
 			},
 		}
 	}
