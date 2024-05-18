@@ -117,5 +117,39 @@ fn main() {
 	println!("{bob}'s balance: {}", runtime.balances.balance(bob));
 	println!("{charlie}'s balance: {}", runtime.balances.balance(charlie));
 
+	let alice_claim_01 = Extrinsic {
+		caller: alice.clone(),
+		call: RuntimeCall::POExistence(proof_of_existence::Call::CreateClaim { claim: "claim_01" }),
+	};
+
+	let bob_claim_02 = Extrinsic {
+		caller: bob.clone(),
+		call: RuntimeCall::POExistence(proof_of_existence::Call::CreateClaim { claim: "claim_02" }),
+	};
+
+	let block_02 = Block {
+		header: Header { block_number: 2 },
+		extrinsics: vec![alice_claim_01, bob_claim_02],
+	};
+
+	runtime.execute_block(block_02).expect("invalid block");
+
+	let alice_revoke_01 = Extrinsic {
+		caller: alice.clone(),
+		call: RuntimeCall::POExistence(proof_of_existence::Call::RevokeClaim { claim: "claim_01" }),
+	};
+
+	let bob_revoke_03 = Extrinsic {
+		caller: bob.clone(),
+		call: RuntimeCall::POExistence(proof_of_existence::Call::RevokeClaim { claim: "claim_03" }),
+	};
+
+	let block_03 = Block {
+		header: Header { block_number: 3 },
+		extrinsics: vec![alice_revoke_01, bob_revoke_03],
+	};
+
+	runtime.execute_block(block_03).expect("invalid block");
+
 	println!("{:#?}", runtime);
 }
